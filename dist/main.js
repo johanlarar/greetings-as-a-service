@@ -3,6 +3,11 @@ console.log("Hello, from main.js");
 let firstName = "";
 const listOfNames = [];
 
+const input = document.getElementById("your_name");
+const button = document.getElementById("submit");
+const list = document.getElementById("name-list");
+const loadingMessage = document.getElementById("loading");
+
 const getMessage = async () => {
 	const res = await fetch(`/hello/${firstName}`);
 	const body = await res.json();
@@ -18,9 +23,22 @@ const getMessages = async () => {
 	}
 };
 
-const input = document.getElementById("your_name");
-const button = document.getElementById("submit");
-const list = document.getElementById("name-list");
+const loadMessages = async (event) => {
+	// await new Promise((resolve) => setTimeout(resolve, 2000));
+	await getMessages();
+	if (!listOfNames.length) {
+		const el = document.createElement("li");
+		el.innerHTML = "No available data";
+		list.appendChild(el);
+	} else {
+		loadingMessage.remove();
+		for (n of listOfNames) {
+			const el = document.createElement("li");
+			el.innerHTML = n.name;
+			list.appendChild(el);
+		}
+	}
+};
 
 button.addEventListener("click", () => {
 	getMessage();
@@ -31,18 +49,4 @@ input.addEventListener("change", (event) => {
 	firstName = inputValue;
 });
 
-document.addEventListener("DOMContentLoaded", async (event) => {
-	await getMessages();
-	if (!listOfNames.length) {
-		const el = document.createElement("li");
-		el.innerHTML = "No available data";
-		console.log({ list: event.target });
-		list.appendChild(el);
-	} else {
-		for (n of listOfNames) {
-			const el = document.createElement("li");
-			el.innerHTML = n.name;
-			list.appendChild(el);
-		}
-	}
-});
+document.addEventListener("DOMContentLoaded", loadMessages);
