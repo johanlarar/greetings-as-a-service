@@ -1,6 +1,6 @@
 console.log("Hello, from main.js");
 
-let firstName = "test!!!";
+let firstName = "";
 
 const getMessage = async () => {
 	const res = await fetch(`/hello/${firstName}`);
