@@ -23,19 +23,34 @@ const getMessages = async () => {
 	}
 };
 
+const createLiElement = (text) => {
+	const el = document.createElement("li");
+	el.innerHTML = text;
+	return el;
+};
+
 const loadMessages = async (event) => {
 	// await new Promise((resolve) => setTimeout(resolve, 2000));
 	await getMessages();
 	if (!listOfNames.length) {
-		const el = document.createElement("li");
-		el.innerHTML = "No available data";
+		const el = createLiElement("No data available");
 		list.appendChild(el);
 	} else {
 		loadingMessage.remove();
 		for (n of listOfNames) {
-			const el = document.createElement("li");
-			el.innerHTML = n.name;
-			list.appendChild(el);
+			const listElement = createLiElement(n.name);
+
+			const deleteBtn = document.createElement("button");
+			deleteBtn.id = n.id;
+			deleteBtn.innerText = "X";
+
+			deleteBtn.addEventListener("click", (event) => {
+				console.log(event.target.id);
+				console.log("Delete button clicked!");
+			});
+
+			listElement.appendChild(deleteBtn);
+			list.appendChild(listElement);
 		}
 	}
 };
