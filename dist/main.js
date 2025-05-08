@@ -23,6 +23,15 @@ const getMessages = async () => {
 	}
 };
 
+const deleteMessage = async (event) => {
+	const res = await fetch(`/delete/${event.target.id}`, {
+		method: "DELETE",
+	});
+	const data = res.json();
+	listOfNames = data;
+	console.log(listOfNames);
+};
+
 const createLiElement = (text) => {
 	const el = document.createElement("li");
 	el.innerHTML = text;
@@ -44,10 +53,7 @@ const loadMessages = async (event) => {
 			deleteBtn.id = n.id;
 			deleteBtn.innerText = "X";
 
-			deleteBtn.addEventListener("click", (event) => {
-				console.log(event.target.id);
-				console.log("Delete button clicked!");
-			});
+			deleteBtn.addEventListener("click", deleteMessage);
 
 			listElement.appendChild(deleteBtn);
 			list.appendChild(listElement);

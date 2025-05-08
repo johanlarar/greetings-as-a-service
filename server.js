@@ -27,6 +27,20 @@ app.get("/data", (req, res) => {
 	res.sendFile(fileName);
 });
 
+app.delete("/delete/:id", (req, res) => {
+	const id = req.params.id;
+	const file = fs.readFileSync(fileName, {
+		encoding: "utf-8",
+		flag: "r+",
+	});
+	const data = JSON.parse(file);
+
+	const newData = data.filter((d) => d.id !== req.params.id);
+	fs.writeFileSync(fileName, JSON.stringify(newData));
+
+	res.send(newData);
+});
+
 app.listen(3000, () => {
 	console.log("Server started");
 });
