@@ -1,19 +1,31 @@
 console.log("Hello, from main.js");
 
 let firstName = "";
+let lastName = "";
 let nameList = [];
 
-const input = document.getElementById("your_name");
+const firstNameInput = document.getElementById("first_name");
+const lastNameInput = document.getElementById("last_name");
 const button = document.getElementById("submit");
 const list = document.getElementById("name-list");
 const loadingMessage = document.getElementById("loading");
 
 const getName = async () => {
-	const res = await fetch(`/hello/${firstName}`);
+	const res = await fetch(`/hello/${firstName}`, {
+		method: "POST",
+		body: JSON.stringify({
+			lastName,
+		}),
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
 	const body = await res.json();
 	const greeting = body.message; // "Hello, test"
 	document.getElementById("heading").innerHTML = greeting;
 	renderNamesList();
+	firstNameInput.value = "";
+	lastNameInput.value = "";
 };
 
 const getNames = async () => {
@@ -45,7 +57,9 @@ const renderNamesList = async (event) => {
 	} else {
 		loadingMessage.remove();
 		for (nameItem of nameList) {
-			const listElement = createLiElement(nameItem.name);
+			const listElement = createLiElement(
+				nameItem.firstName + " " + nameItem.lastName,
+			);
 
 			const deleteBtn = document.createElement("button");
 			deleteBtn.id = nameItem.id;
@@ -59,18 +73,24 @@ const renderNamesList = async (event) => {
 	}
 };
 
-const setNewName = (event) => {
+const setNewFirstName = (event) => {
 	firstName = event.target.value;
-	event.target.value = "";
+	event.target.value = firstName;
+};
+
+const setNewLastName = (event) => {
+	lastName = event.target.value;
+	event.target.value = lastName;
 };
 
 button.addEventListener("click", getName);
 
-input.addEventListener("change", setNewName);
+firstNameInput.addEventListener("change", setNewFirstName);
+lastNameInput.addEventListener("change", setNewLastName);
 
-input.addEventListener("keypress", (event) => {
+firstNameInput.addEventListener("keypress", (event) => {
 	if (event.key === "Enter") {
-		setNewName(event);
+		setNewFirstName(event);
 		getName();
 	}
 });
