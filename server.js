@@ -23,7 +23,7 @@ app.get("/hello/:name", (req, res) => {
 	res.send({ message: `Hello, ${req.params.name}` });
 });
 
-app.get("/data", (req, res) => {
+app.get("/names", (req, res) => {
 	res.sendFile(fileName);
 });
 
