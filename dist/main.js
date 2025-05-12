@@ -42,10 +42,52 @@ const deleteName = async (event) => {
 	renderNamesList();
 };
 
-const createLiElement = (text) => {
-	const el = document.createElement("li");
-	el.innerHTML = text;
-	return el;
+const createLiNoDataAvailable = () => {
+	const container = document.createElement("li");
+	container.textContent = "No data available";
+	return container;
+};
+
+const createCheckBoxColumn = (id) => {
+	const container = document.createElement("div");
+	const checkbox = document.createElement("input");
+	checkbox.type = "checkbox";
+	checkbox.id = id;
+
+	container.appendChild(checkbox);
+
+	checkbox.addEventListener("click", (event) => {
+		console.log(`Checkbox with id: ${id} was clicked`);
+	});
+
+	return container;
+};
+
+const createTextNodeColumn = (item) => {
+	const container = document.createElement("div");
+	container.textContent = `${item.firstName} ${item.lastName}`;
+	return container;
+};
+
+const createDeleteButtonColumn = (id) => {
+	const container = document.createElement("div");
+	const button = document.createElement("button");
+	button.id = nameItem.id;
+	button.innerText = "X";
+
+	container.appendChild(button);
+
+	container.addEventListener("click", deleteName);
+
+	return container;
+};
+
+const createLiElementRow = (item) => {
+	const container = document.createElement("li");
+	container.appendChild(createCheckBoxColumn(item.id));
+	container.appendChild(createTextNodeColumn(item));
+	container.appendChild(createDeleteButtonColumn(item.id));
+	return container;
 };
 
 const renderNamesList = async (event) => {
@@ -53,22 +95,13 @@ const renderNamesList = async (event) => {
 	await getNames();
 	list.innerHTML = "";
 	if (!nameList.length) {
-		const el = createLiElement("No data available");
+		const el = createLiNoDataAvailable();
 		list.appendChild(el);
 	} else {
 		loadingMessage.remove();
 		for (nameItem of nameList) {
-			const listElement = createLiElement(
-				nameItem.firstName + " " + nameItem.lastName,
-			);
+			const listElement = createLiElementRow(nameItem);
 
-			const deleteBtn = document.createElement("button");
-			deleteBtn.id = nameItem.id;
-			deleteBtn.innerText = "X";
-
-			deleteBtn.addEventListener("click", deleteName);
-
-			listElement.appendChild(deleteBtn);
 			list.appendChild(listElement);
 		}
 	}
