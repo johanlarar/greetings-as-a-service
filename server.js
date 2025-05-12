@@ -13,7 +13,6 @@ app.use(express.static(path.join(__dirname, "dist")));
 app.use(bodyParser.json());
 
 app.post("/hello/:firstName", (req, res) => {
-	console.log(req.body.lastName);
 	const file = fs.readFileSync(fileName, {
 		encoding: "utf-8",
 		flag: "r+",

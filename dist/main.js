@@ -9,8 +9,9 @@ const lastNameInput = document.getElementById("last_name");
 const button = document.getElementById("submit");
 const list = document.getElementById("name-list");
 const loadingMessage = document.getElementById("loading");
+const errorMessage = document.getElementById("error");
 
-const getName = async () => {
+const setName = async () => {
 	const res = await fetch(`/hello/${firstName}`, {
 		method: "POST",
 		body: JSON.stringify({
@@ -83,16 +84,38 @@ const setNewLastName = (event) => {
 	event.target.value = lastName;
 };
 
-button.addEventListener("click", getName);
+const handleEnter = (event, nameType) => {
+	if (event.key === "Enter") {
+		if (nameType === "firstName") {
+			setNewFirstName(event);
+		}
+		if (nameType === "lastName") {
+			setNewLastName(event);
+		}
+		if (!firstName) {
+			error.innerText = "Inget första namn satt";
+			return;
+		}
+		if (!lastName) {
+			error.innerText = "Inget efternamn satt";
+			return;
+		}
+		error.innerText = "";
+		setName();
+	}
+};
+
+button.addEventListener("click", setName);
 
 firstNameInput.addEventListener("change", setNewFirstName);
 lastNameInput.addEventListener("change", setNewLastName);
 
-firstNameInput.addEventListener("keypress", (event) => {
-	if (event.key === "Enter") {
-		setNewFirstName(event);
-		getName();
-	}
-});
+firstNameInput.addEventListener("keypress", (event) =>
+	handleEnter(event, "firstName"),
+);
+
+lastNameInput.addEventListener("keypress", (event) =>
+	handleEnter(event, "lastName"),
+);
 
 document.addEventListener("DOMContentLoaded", renderNamesList);
