@@ -1,11 +1,19 @@
 <html>
   <head>
     <title>Million dollar idea</title>
+    <link rel="stylesheet" href="main.css" />
   </head>
   <body>
-    <h1 id="heading">It worked</h1>
-    <input id="your_name" type="text" placeholder="Your name"/>
-    <button id="submit">Submit</button>
+    <h1 id="heading">Hello, ___</h1>
+    <div>
+      <input id="first_name" type="text" placeholder="Your first name"/>
+      <input id="last_name" type="text" placeholder="Your last name" />
+      <button id="submit">Submit</button>
+    </div>
+    <p id="error"></p>
+    <ul id="name-list">
+      <li id="loading">Loading...</li>
+    </ul>
     <script src="main.js"></script>
   </body>
 </html>
