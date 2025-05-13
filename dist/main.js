@@ -48,11 +48,12 @@ const createLiNoDataAvailable = () => {
 	return container;
 };
 
-const createCheckBoxColumn = (id) => {
+const createCheckBoxColumn = (item) => {
 	const container = document.createElement("div");
 	const checkbox = document.createElement("input");
 	checkbox.type = "checkbox";
-	checkbox.id = id;
+	checkbox.id = item.id;
+	checkbox.checked = item.checked;
 
 	container.appendChild(checkbox);
 
@@ -84,7 +85,7 @@ const createDeleteButtonColumn = (id) => {
 
 const createLiElementRow = (item) => {
 	const container = document.createElement("li");
-	container.appendChild(createCheckBoxColumn(item.id));
+	container.appendChild(createCheckBoxColumn(item));
 	container.appendChild(createTextNodeColumn(item));
 	container.appendChild(createDeleteButtonColumn(item.id));
 	return container;

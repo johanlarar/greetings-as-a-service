@@ -9,23 +9,33 @@ const app = express();
 
 const fileName = path.join(__dirname, "data", "name.json");
 
-app.use(express.static(path.join(__dirname, "dist")));
-app.use(bodyParser.json());
-
-app.post("/hello/:firstName", (req, res) => {
+function readJsonFile() {
 	const file = fs.readFileSync(fileName, {
 		encoding: "utf-8",
 		flag: "r+",
 	});
-	const data = JSON.parse(file);
+	return JSON.parse(file);
+}
+
+function wrtieToJsonFile(data) {
+	fs.writeFileSync(fileName, JSON.stringify(data));
+}
+
+app.use(express.static(path.join(__dirname, "dist")));
+app.use(bodyParser.json());
+
+app.post("/hello/:firstName", (req, res) => {
+	const data = readJsonFile();
 
 	data.push({
 		id: uuidv4(),
+		checked: false,
 		firstName: req.params.firstName,
 		lastName: req.body.lastName,
 	});
 
-	fs.writeFileSync(fileName, JSON.stringify(data));
+	wrtieToJsonFile(data);
+
 	res.send({ message: `Hello, ${req.params.firstName}` });
 });
 
@@ -34,17 +44,21 @@ app.get("/names", (req, res) => {
 });
 
 app.delete("/delete/:id", (req, res) => {
-	const id = req.params.id;
-	const file = fs.readFileSync(fileName, {
-		encoding: "utf-8",
-		flag: "r+",
+	const data = readJsonFile().filter((d) => d.id !== req.params.id);
+
+	wrtieToJsonFile(data);
+	res.send(data);
+});
+
+app.put("/name/:id", (req, res) => {
+	const data = readJsonFile().map((data) => {
+		if (data.id === req.params.id) {
+			data.checked = true;
+		}
+		return data;
 	});
-	const data = JSON.parse(file);
-
-	const newData = data.filter((d) => d.id !== req.params.id);
-	fs.writeFileSync(fileName, JSON.stringify(newData));
-
-	res.send(newData);
+	wrtieToJsonFile(data);
+	res.json(data.filter((d) => d.id === req.params.id));
 });
 
 app.listen(3000, () => {
