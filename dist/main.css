@@ -1,8 +1,32 @@
+body {
+  background-color: #0e0e0e;
+  color: #f2f2f2;
+  font-family: sans-serif;
+  margin: 0 auto;
+  max-width: 50vw;
+  padding: 4rem 0;
+}
+
+input {
+  border: 1px solid #f2f2f2;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+button {
+  border: 1px solid #f2f2f2;
+  background-color: transparent;
+  border-radius: 8px;
+  color: #f2f2f2;
+  padding: 4px 8px;
+}
+
+
 #error {
   color: red;
 }
 
-ul > li {
+li {
   display: flex;
   gap: 16px;
 }
