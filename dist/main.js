@@ -1,45 +1,101 @@
 console.log("Hello, from main.js");
 
-let firstName = "";
-let lastName = "";
-let nameList = [];
+let owner = "";
+let todo = "";
+let todos = [];
 
-const firstNameInput = document.getElementById("first_name");
-const lastNameInput = document.getElementById("last_name");
+const ownerInput = document.getElementById("owner");
+const todoInput = document.getElementById("task");
 const button = document.getElementById("submit");
-const list = document.getElementById("name-list");
+const list = document.getElementById("todos");
 const loadingMessage = document.getElementById("loading");
 const errorMessage = document.getElementById("error");
 
-const setName = async () => {
-	const res = await fetch(`/hello/${firstName}`, {
+const createTodo = async () => {
+	const res = await fetch("/todo", {
 		method: "POST",
 		body: JSON.stringify({
-			lastName,
+			owner,
+			todo,
 		}),
 		headers: {
 			"Content-Type": "application/json",
 		},
 	});
 	const body = await res.json();
+	if (!res.ok) {
+		throw new Error(body.error);
+	}
 	const greeting = body.message; // "Hello, test"
 	document.getElementById("heading").innerHTML = greeting;
-	renderNamesList();
-	firstNameInput.value = "";
-	lastNameInput.value = "";
+	renderTodos();
+	// Empty inputs
+	ownerInput.value = "";
+	todoInput.value = "";
+	// Empty values in memory
+	owner = "";
+	todo = "";
 };
 
-const getNames = async () => {
-	const res = await fetch("/names");
-	const names = await res.json();
-	nameList = names;
+/**
+ * @name getTodos
+ * @description Gets a list of todos
+ */
+const getTodos = async () => {
+	const res = await fetch("/todos");
+	const body = await res.json();
+	if (!res.ok) {
+		throw new Error(body.error);
+	}
+	todos = body;
 };
 
-const deleteName = async (event) => {
-	await fetch(`/delete/${event.target.id}`, {
+/**
+ * @name updateChecked
+ * @description Updates checked for todo by id
+ */
+const updateChecked = async (event) => {
+	const res = await fetch(`/todo/checked/${event.target.id}`, {
+		method: "PUT",
+	});
+	const body = res.json();
+	if (!res.ok) {
+		throw new Error(body.error);
+	}
+	renderTodos();
+};
+
+/**
+ * @name updatePrio
+ * @description Updates priority for tody by id
+ */
+
+const updatePrio = async (event) => {
+	const res = await fetch(`/todo/prio/${event.target.id}`, {
+		method: "PUT",
+		body: JSON.stringify({
+			prio: event.target.value,
+		}),
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+	const body = res.json();
+	if (!res.ok) {
+		throw new Error(body.error);
+	}
+	renderTodos();
+};
+
+/**
+ * @name deleteTodo
+ * @description Deletes todo by id
+ */
+const deleteTodo = async (event) => {
+	await fetch(`/todo/delete/${event.target.id}`, {
 		method: "DELETE",
 	});
-	renderNamesList();
+	renderTodos();
 };
 
 const createLiNoDataAvailable = () => {
@@ -57,99 +113,127 @@ const createCheckBoxColumn = (item) => {
 
 	container.appendChild(checkbox);
 
-	checkbox.addEventListener("click", (event) => {
-		console.log(`Checkbox with id: ${id} was clicked`);
-	});
+	checkbox.addEventListener("click", updateChecked);
 
 	return container;
 };
 
 const createTextNodeColumn = (item) => {
 	const container = document.createElement("div");
-	container.textContent = `${item.firstName} ${item.lastName}`;
+	container.textContent = `${item.owner} ${item.todo}`;
+	if (item.checked) {
+		container.style.textDecoration = "line-through";
+	} else {
+		container.style.textDecoration = "none";
+	}
 	return container;
 };
 
 const createDeleteButtonColumn = (id) => {
 	const container = document.createElement("div");
 	const button = document.createElement("button");
-	button.id = nameItem.id;
+	button.id = id;
 	button.innerText = "X";
 
 	container.appendChild(button);
 
-	container.addEventListener("click", deleteName);
+	container.addEventListener("click", deleteTodo);
 
+	return container;
+};
+
+const createPrioDropdown = (item) => {
+	const container = document.createElement("div");
+	const dropdown = document.createElement("select");
+	dropdown.id = item.id;
+	const prioArr = [1, 2, 3];
+	for (prio of prioArr) {
+		dropdown.options.add(new Option(prio, prio));
+	}
+	dropdown.value = item.prio;
+	dropdown.addEventListener("change", updatePrio);
+	container.appendChild(dropdown);
 	return container;
 };
 
 const createLiElementRow = (item) => {
 	const container = document.createElement("li");
 	container.appendChild(createCheckBoxColumn(item));
+	container.appendChild(createPrioDropdown(item));
 	container.appendChild(createTextNodeColumn(item));
 	container.appendChild(createDeleteButtonColumn(item.id));
 	return container;
 };
 
-const renderNamesList = async (event) => {
-	// await new Promise((resolve) => setTimeout(resolve, 2000));
-	await getNames();
-	list.innerHTML = "";
-	if (!nameList.length) {
-		const el = createLiNoDataAvailable();
-		list.appendChild(el);
-	} else {
-		loadingMessage.remove();
-		for (nameItem of nameList) {
-			const listElement = createLiElementRow(nameItem);
-
-			list.appendChild(listElement);
+const sortTodosByPrio = () =>
+	todos.sort((a, b) => {
+		if (a.prio < b.prio) {
+			return -1;
 		}
+		if (a.prio > b.prio) {
+			return 1;
+		}
+
+		return 0;
+	});
+
+const renderTodos = async (event) => {
+	try {
+		await getTodos();
+		list.innerHTML = "";
+		if (!todos.length) {
+			const el = createLiNoDataAvailable();
+			list.appendChild(el);
+		} else {
+			loadingMessage.remove();
+			for (nameItem of sortTodosByPrio()) {
+				const listElement = createLiElementRow(nameItem);
+				list.appendChild(listElement);
+			}
+		}
+	} catch (error) {
+		errorMessage.textContent = error.message;
 	}
 };
 
-const setNewFirstName = (event) => {
-	firstName = event.target.value;
-	event.target.value = firstName;
+const handleSetOwner = (event) => {
+	owner = event.target.value;
+	event.target.value = owner;
 };
 
-const setNewLastName = (event) => {
-	lastName = event.target.value;
-	event.target.value = lastName;
+const handleSetTodo = (event) => {
+	todo = event.target.value;
+	event.target.value = todo;
 };
 
 const handleEnter = (event, nameType) => {
 	if (event.key === "Enter") {
-		if (nameType === "firstName") {
-			setNewFirstName(event);
+		if (nameType === "owner") {
+			handleSetOwner(event);
 		}
-		if (nameType === "lastName") {
-			setNewLastName(event);
+		if (nameType === "todo") {
+			handleSetTodo(event);
 		}
-		if (!firstName) {
-			error.innerText = "Inget första namn satt";
+		if (!owner) {
+			error.textContent = "No owner set";
 			return;
 		}
-		if (!lastName) {
-			error.innerText = "Inget efternamn satt";
+		if (!todo) {
+			error.textContent = "No task set";
 			return;
 		}
 		error.innerText = "";
-		setName();
+		createTodo();
 	}
 };
 
-button.addEventListener("click", setName);
+button.addEventListener("click", createTodo);
 
-firstNameInput.addEventListener("change", setNewFirstName);
-lastNameInput.addEventListener("change", setNewLastName);
+ownerInput.addEventListener("change", handleSetOwner);
+todoInput.addEventListener("change", handleSetTodo);
 
-firstNameInput.addEventListener("keypress", (event) =>
-	handleEnter(event, "firstName"),
-);
+ownerInput.addEventListener("keypress", (event) => handleEnter(event, "owner"));
 
-lastNameInput.addEventListener("keypress", (event) =>
-	handleEnter(event, "lastName"),
-);
+todoInput.addEventListener("keypress", (event) => handleEnter(event, "todo"));
 
-document.addEventListener("DOMContentLoaded", renderNamesList);
+document.addEventListener("DOMContentLoaded", renderTodos);

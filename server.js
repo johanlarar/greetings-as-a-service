@@ -24,41 +24,106 @@ function wrtieToJsonFile(data) {
 app.use(express.static(path.join(__dirname, "dist")));
 app.use(bodyParser.json());
 
-app.post("/hello/:firstName", (req, res) => {
-	const data = readJsonFile();
+class ValidationError extends Error {
+	constructor(message) {
+		super(message);
+		this.name = "ValidationError";
+	}
+}
 
-	data.push({
-		id: uuidv4(),
-		checked: false,
-		firstName: req.params.firstName,
-		lastName: req.body.lastName,
-	});
-
-	wrtieToJsonFile(data);
-
-	res.send({ message: `Hello, ${req.params.firstName}` });
-});
-
-app.get("/names", (req, res) => {
-	res.sendFile(fileName);
-});
-
-app.delete("/delete/:id", (req, res) => {
-	const data = readJsonFile().filter((d) => d.id !== req.params.id);
-
-	wrtieToJsonFile(data);
-	res.send(data);
-});
-
-app.put("/name/:id", (req, res) => {
-	const data = readJsonFile().map((data) => {
-		if (data.id === req.params.id) {
-			data.checked = true;
+app.post("/todo", (req, res) => {
+	try {
+		if (!req.body.owner) {
+			throw new ValidationError("Missing owner of todo");
 		}
-		return data;
-	});
-	wrtieToJsonFile(data);
-	res.json(data.filter((d) => d.id === req.params.id));
+		if (!req.body.todo) {
+			throw new ValidationError("Missing task");
+		}
+		const data = readJsonFile();
+
+		data.push({
+			id: uuidv4(),
+			checked: false,
+			prio: 3,
+			owner: req.body.owner,
+			todo: req.body.todo,
+		});
+
+		wrtieToJsonFile(data);
+
+		res.send({ message: `Hello, ${req.body.owner}` });
+	} catch (error) {
+		console.error(JSON.stringify({ error: error.message, fn: "/todo" }));
+		if (error instanceof ValidationError) {
+			res.status(400).send({ error: error.message });
+		} else {
+			res.status(500).send({ error: "Unable to write new names" });
+		}
+	}
+});
+
+app.get("/todos", (req, res) => {
+	try {
+		const data = readJsonFile();
+		res.send(data);
+	} catch (error) {
+		console.log(JSON.stringify({ error: error.message, fn: "/names" }));
+		res.status(500).send({ error: "Unable to load names" });
+	}
+});
+
+app.delete("/todo/delete/:id", (req, res) => {
+	try {
+		const data = readJsonFile().filter((d) => d.id !== req.params.id);
+
+		wrtieToJsonFile(data);
+		res.send(data);
+	} catch (error) {}
+});
+
+app.put("/todo/checked/:id", (req, res) => {
+	try {
+		const data = readJsonFile().map((data) => {
+			if (data.id === req.params.id) {
+				data.checked = !data.checked;
+			}
+			return data;
+		});
+		wrtieToJsonFile(data);
+		res.json(data.filter((d) => d.id === req.params.id));
+	} catch (error) {
+		console.log(error);
+		res
+			.status(500)
+			.send({ error: "Unable to update done. Try again later..." });
+	}
+});
+
+app.put("/todo/prio/:id", (req, res) => {
+	try {
+		if (req.body.prio > 3) {
+			throw new ValidationError("Prio can't be larger than 3");
+		}
+		const data = readJsonFile().map((data) => {
+			if (data.id === req.params.id) {
+				data.prio = Number.parseInt(req.body.prio);
+			}
+			return data;
+		});
+		wrtieToJsonFile(data);
+		res.json(data.filter((d) => d.id === req.params.id));
+	} catch (error) {
+		console.error(
+			JSON.stringify({ error: error.message, fn: "/todo/prio/:id" }),
+		);
+		if (error instanceof ValidationError) {
+			res.status(400).send({ error: error.message });
+		} else {
+			res
+				.status(500)
+				.send({ error: "Unable to update prio. Try again later..." });
+		}
+	}
 });
 
 app.listen(3000, () => {
